@@ -35,6 +35,15 @@
 #include <getopt.h>
 
 
+static void print_hex(uint8_t buf[], size_t len)
+{
+    for(int i=0; i<len; ++i)
+    {
+        printf("%02x", buf[i]);
+    }
+    printf("\n");
+}
+
 static struct option long_options[] =
 {
     { "probe",   no_argument, NULL, 'p'},
@@ -135,7 +144,7 @@ int main(int argc, char *argv[])
         {
             if ( opt_verbose > 0 )
             {
-               fprintf( h264_dbgfile, "!! Found NAL at offset %lld (0x%04llX), size %lld (0x%04llX) \n",
+               fprintf( h264_dbgfile, "================= Found NAL at offset %lld (0x%04llX), size %lld (0x%04llX) ==============\n",
                       (long long int)(off + (p - buf) + nal_start),
                       (long long int)(off + (p - buf) + nal_start),
                       (long long int)(nal_end - nal_start),
