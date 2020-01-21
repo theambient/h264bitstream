@@ -154,7 +154,82 @@ void read_dec_ref_pic_marking(h264_stream_t* h, bs_t* b);
 void read_slice_header_in_scalable_extension(h264_stream_t* h, bs_t* b);
 void read_dec_ref_base_pic_marking(nal_t* nal, bs_t* b);
 
+const char * slice_type2str(int slice_type)
+{
+    switch(slice_type)
+    {
+        case SH_SLICE_TYPE_P:
+            return "P";
+        case SH_SLICE_TYPE_B:
+            return "B";
+        case SH_SLICE_TYPE_I:
+            return "I";
+        case SH_SLICE_TYPE_SP:
+            return "SP";
+        case SH_SLICE_TYPE_SI:
+            return "SI";
+        case SH_SLICE_TYPE_P_ONLY:
+            return "P_ONLY";
+        case SH_SLICE_TYPE_B_ONLY:
+            return "B_ONLY";
+        case SH_SLICE_TYPE_I_ONLY:
+            return "I_ONLY";
+        case SH_SLICE_TYPE_SP_ONLY:
+            return "SP_ONLY";
+        case SH_SLICE_TYPE_SI_ONLY:
+            return "SI_ONLY";
+        default:
+            return "UNKNOWN";
+    }
+}
 
+const char * nalu_type2strt(int nalu_type)
+{
+    switch(nalu_type)
+    {
+        case NAL_UNIT_TYPE_UNSPECIFIED:
+            return "UNSPECIFIED";
+        case NAL_UNIT_TYPE_CODED_SLICE_NON_IDR:
+            return "CODED_SLICE_NON_IDR";
+        case NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_A:
+            return "CODED_SLICE_DATA_PARTITION_A";
+        case NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_B:
+            return "CODED_SLICE_DATA_PARTITION_B";
+        case NAL_UNIT_TYPE_CODED_SLICE_DATA_PARTITION_C:
+            return "CODED_SLICE_DATA_PARTITION_C";
+        case NAL_UNIT_TYPE_CODED_SLICE_IDR:
+            return "CODED_SLICE_IDR";
+        case NAL_UNIT_TYPE_SEI:
+            return "SEI";
+        case NAL_UNIT_TYPE_SPS:
+            return "SPS";
+        case NAL_UNIT_TYPE_PPS:
+            return "PPS";
+        case NAL_UNIT_TYPE_AUD:
+            return "AUD";
+        case NAL_UNIT_TYPE_END_OF_SEQUENCE:
+            return "END_OF_SEQUENCE";
+        case NAL_UNIT_TYPE_END_OF_STREAM:
+            return "END_OF_STREAM";
+        case NAL_UNIT_TYPE_FILLER:
+            return "FILLER";
+        case NAL_UNIT_TYPE_SPS_EXT:
+            return "SPS_EXT";
+        case NAL_UNIT_TYPE_PREFIX_NAL:
+            return "PREFIX_NAL";
+        case NAL_UNIT_TYPE_SUBSET_SPS:
+            return "SUBSET_SPS";
+        case NAL_UNIT_TYPE_DPS:
+            return "DPS";
+        case NAL_UNIT_TYPE_CODED_SLICE_AUX:
+            return "CODED_SLICE_AUX";
+        case NAL_UNIT_TYPE_CODED_SLICE_SVC_EXTENSION:
+            return "CODED_SLICE_SVC_EXTENSION";
+        default:
+            return "UNKNOWN";
+            
+    }
+}
 
 //7.3.1 NAL unit syntax
 int read_nal_unit(h264_stream_t* h, uint8_t* buf, int size)
@@ -2840,7 +2915,7 @@ int read_debug_nal_unit(h264_stream_t* h, uint8_t* buf, int size)
     bs_t* b = bs_new(rbsp_buf, rbsp_size);
     printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); int forbidden_zero_bit = bs_read_u(b, 1); printf("forbidden_zero_bit: %d \n", forbidden_zero_bit); 
     printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); nal->nal_ref_idc = bs_read_u(b, 2); printf("nal->nal_ref_idc: %d \n", nal->nal_ref_idc); 
-    printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); nal->nal_unit_type = bs_read_u(b, 5); printf("nal->nal_unit_type: %d \n", nal->nal_unit_type); 
+    printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); nal->nal_unit_type = bs_read_u(b, 5); printf("nal->nal_unit_type: %d (%s)\n", nal->nal_unit_type, nalu_type2strt(nal->nal_unit_type)); 
     
     if( nal->nal_unit_type == 14 || nal->nal_unit_type == 21 || nal->nal_unit_type == 20 )
     {
@@ -3636,7 +3711,7 @@ void read_debug_slice_header(h264_stream_t* h, bs_t* b)
     nal_t* nal = h->nal;
 
     printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->first_mb_in_slice = bs_read_ue(b); printf("sh->first_mb_in_slice: %d \n", sh->first_mb_in_slice); 
-    printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->slice_type = bs_read_ue(b); printf("sh->slice_type: %d \n", sh->slice_type); 
+    printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->slice_type = bs_read_ue(b); printf("sh->slice_type: %d (%s)\n", sh->slice_type, slice_type2str(sh->slice_type)); 
     printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->pic_parameter_set_id = bs_read_ue(b); printf("sh->pic_parameter_set_id: %d \n", sh->pic_parameter_set_id); 
 
     // TODO check existence, otherwise fail
@@ -3910,7 +3985,7 @@ void read_debug_slice_header_in_scalable_extension(h264_stream_t* h, bs_t* b)
     nal_t* nal = h->nal;
     
     printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->first_mb_in_slice = bs_read_ue(b); printf("sh->first_mb_in_slice: %d \n", sh->first_mb_in_slice); 
-    printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->slice_type = bs_read_ue(b); printf("sh->slice_type: %d \n", sh->slice_type); 
+    printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->slice_type = bs_read_ue(b); printf("sh->slice_type: %d (%s)\n", sh->slice_type, slice_type2str(sh->slice_type)); 
     printf("%ld.%d: ", (long int)(b->p - b->start), b->bits_left); sh->pic_parameter_set_id = bs_read_ue(b); printf("sh->pic_parameter_set_id: %d \n", sh->pic_parameter_set_id); 
     
     // TODO check existence, otherwise fail
